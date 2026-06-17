@@ -1,0 +1,38 @@
+# Build context excludes — keep it small and free of secrets.
+
+# Dependencies & build output (reinstalled / regenerated inside the image).
+node_modules
+.next
+out
+build
+dist
+coverage
+
+# Secrets — runtime config is injected by compose, never baked into the image.
+.env
+.env.*
+
+# VCS / CI / editor.
+.git
+.github
+.gitignore
+.vscode
+.idea
+.DS_Store
+
+# Docker assets themselves.
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Tests & docs (not needed to build or run).
+test
+**/*.test.ts
+README.md
+
+# Local mounts.
+downloads
+
+# Misc.
+*.tsbuildinfo
+npm-debug.log*

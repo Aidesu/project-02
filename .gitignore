@@ -19,6 +19,8 @@
 
 # production
 /build
+# esbuild bundle of the DB bootstrap (generated in the Docker build)
+/dist
 
 # misc
 .DS_Store
@@ -32,6 +34,12 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...but keep the committed example templates.
+!.env.example
+!.env.docker.example
+
+# local downloads bind-mount for Docker (DOWNLOADS_HOST_DIR)
+/downloads/
 
 # vercel
 .vercel

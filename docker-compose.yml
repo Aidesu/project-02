@@ -1,0 +1,63 @@
+name: deafiaa-serv
+
+# Local / self-hosted build. One command brings up everything:
+#
+#   cp .env.docker.example .env   # fill in the secrets
+#   docker compose up --build     # → http://localhost:3000
+#
+# The app image self-migrates on boot (migrations + seed-if-empty, see
+# docker-entrypoint.sh), so there is no separate migrate step.
+#
+# For Portainer / a pre-built image from a registry, use
+# docker-compose.portainer.yml instead (no build, image: ghcr.io/...).
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-deafiaa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-localdev}
+      POSTGRES_DB: ${POSTGRES_DB:-deafiaa_serv}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-deafiaa} -d ${POSTGRES_DB:-deafiaa_serv}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      target: runner
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      AUTH_SECRET: ${AUTH_SECRET}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      PROXMOX_URL: ${PROXMOX_URL:-}
+      PROXMOX_TOKEN: ${PROXMOX_TOKEN:-}
+      PROXMOX_INSECURE_TLS: ${PROXMOX_INSECURE_TLS:-}
+      DOWNLOADS_DIR: ${DOWNLOADS_DIR:-/srv/gameservers}
+    volumes:
+      # Read-only mount of the downloadable files (DOWNLOADS_DIR/<slug>/<file>).
+      - ${DOWNLOADS_HOST_DIR:-./downloads}:${DOWNLOADS_DIR:-/srv/gameservers}:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  pgdata:

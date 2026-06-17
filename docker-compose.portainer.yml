@@ -1,0 +1,68 @@
+name: deafiaa-serv
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Portainer / registry deployment — NO build (a light CT only pulls + runs).
+#  The image is built and pushed to GHCR by .github/workflows/docker-publish.yml.
+#
+#  Portainer → Stacks → Add stack → Web editor: paste this file.
+#  Set the variables below in the stack's "Environment variables" section:
+#    POSTGRES_PASSWORD, DATABASE_URL, AUTH_SECRET, ADMIN_PASSWORD  (required)
+#    APP_IMAGE, APP_PORT, PROXMOX_*, DOWNLOADS_*                   (optional)
+#
+#  DATABASE_URL must use the service name `db` as host, e.g.
+#    postgresql://deafiaa:<POSTGRES_PASSWORD>@db:5432/deafiaa_serv
+#
+#  The app self-migrates on boot (migrations + seed-if-empty), so there is no
+#  separate migrate service to run.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-deafiaa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the stack env}
+      POSTGRES_DB: ${POSTGRES_DB:-deafiaa_serv}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-deafiaa} -d ${POSTGRES_DB:-deafiaa_serv}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    image: ${APP_IMAGE:-ghcr.io/aidesu/project-02:latest}
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL in the stack env}
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in the stack env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in the stack env}
+      PROXMOX_URL: ${PROXMOX_URL:-}
+      PROXMOX_TOKEN: ${PROXMOX_TOKEN:-}
+      PROXMOX_INSECURE_TLS: ${PROXMOX_INSECURE_TLS:-}
+      DOWNLOADS_DIR: ${DOWNLOADS_DIR:-/srv/gameservers}
+    volumes:
+      # Downloadable files (DOWNLOADS_DIR/<slug>/<file>), read-only.
+      # Default: an absolute host path. Swap for a named volume if you prefer.
+      - ${DOWNLOADS_HOST_DIR:-/srv/gameservers}:${DOWNLOADS_DIR:-/srv/gameservers}:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  pgdata:

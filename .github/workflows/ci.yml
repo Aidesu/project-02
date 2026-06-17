@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Node 24 / npm 11 — matches the Docker image and the npm that wrote
+          # package-lock.json (npm 10 trips EBADPLATFORM on `npm ci` here).
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Tests
+        run: npm test
+
+      # Builds without DATABASE_URL: the catalog falls back to the static data,
+      # so CI doesn't need a database to validate the production build.
+      - name: Build
+        run: npm run build
