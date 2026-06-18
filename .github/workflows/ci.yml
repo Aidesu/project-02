@@ -23,6 +23,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # `tsc` needs the global PageProps/RouteContext types that Next generates
+      # into .next/types; without this step typecheck fails with "Cannot find
+      # name 'PageProps'".
+      - name: Generate route types
+        run: npx next typegen
+
       - name: Typecheck
         run: npx tsc --noEmit
 
