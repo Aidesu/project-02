@@ -44,12 +44,33 @@ export function rateLimit(
   return { ok: true, remaining: limit - bucket.count, retryAfter: 0 }
 }
 
-/** Best-effort client identifier from proxy headers (falls back to "local"). */
-export function clientKey(req: Request): string {
-  const xff = req.headers.get('x-forwarded-for')
-  const ip =
-    xff?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'local'
-  return ip
+/** Minimal header reader satisfied by both `Request.headers` and `next/headers`. */
+type HeaderReader = Pick<Headers, 'get'>
+
+/**
+ * Client identifier used to key per-IP limits.
+ *
+ * This deployment sits behind Cloudflare, so we trust `cf-connecting-ip`: it is
+ * set by Cloudflare's edge and cannot be forged by the client — PROVIDED the
+ * origin only accepts Cloudflare traffic (lock the origin firewall to
+ * Cloudflare's IP ranges, or front it with a Cloudflare Tunnel). Otherwise an
+ * attacker can hit the origin directly and fall through to the spoofable
+ * headers below.
+ *
+ * The `x-forwarded-for` / `x-real-ip` fallbacks are client-claimed (spoofable)
+ * and exist only for local dev / non-Cloudflare environments.
+ */
+export function clientKey(headers: HeaderReader): string {
+  const cf = headers.get('cf-connecting-ip')?.trim()
+  if (cf) return cf
+
+  const xff = headers.get('x-forwarded-for')
+  return xff?.split(',')[0]?.trim() || headers.get('x-real-ip') || 'local'
+}
+
+/** Forget a single bucket (e.g. on a successful login, to forgive attempts). */
+export function clearRateLimit(key: string): void {
+  buckets.delete(key)
 }
 
 /** Reset internal state (tests only). */
@@ -72,7 +93,7 @@ export function enforceRateLimit(
   req: Request,
   { name, limit, windowMs }: RateLimitOptions,
 ): Response | null {
-  const result = rateLimit(`${name}:${clientKey(req)}`, limit, windowMs)
+  const result = rateLimit(`${name}:${clientKey(req.headers)}`, limit, windowMs)
   if (result.ok) return null
 
   return Response.json(

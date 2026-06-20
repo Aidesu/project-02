@@ -47,6 +47,10 @@ function parseInput(form: FormData): { input?: ServerInput; error?: string } {
 
   const queryPort = field(form, 'queryPort')
   const proxmoxVmid = field(form, 'proxmoxVmid')
+  const proxmoxType = field(form, 'proxmoxType')
+  if (proxmoxType && proxmoxType !== 'lxc' && proxmoxType !== 'qemu') {
+    return { error: 'Le type Proxmox doit être « lxc » ou « qemu ».' }
+  }
 
   const input: ServerInput = {
     slug,
@@ -59,7 +63,7 @@ function parseInput(form: FormData): { input?: ServerInput; error?: string } {
     connect: field(form, 'connect') || null,
     proxmoxNode: field(form, 'proxmoxNode') || null,
     proxmoxVmid: proxmoxVmid ? Number(proxmoxVmid) : null,
-    proxmoxType: field(form, 'proxmoxType') || null,
+    proxmoxType: proxmoxType || null,
     startedAt,
     endedAt: field(form, 'endedAt') || null,
     archived: form.get('archived') === 'on',

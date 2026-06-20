@@ -52,6 +52,9 @@ function fetchJson(
 export async function queryProxmox(server: Server): Promise<ProxmoxStats> {
   const ref = server.proxmox
   if (!ref) return { available: false, error: 'Aucune référence Proxmox configurée' }
+  if (ref.type !== 'lxc' && ref.type !== 'qemu') {
+    return { available: false, error: `Type Proxmox invalide : ${ref.type}` }
+  }
 
   const base = process.env.PROXMOX_URL?.replace(/\/$/, '')
   const token = process.env.PROXMOX_TOKEN
@@ -59,7 +62,11 @@ export async function queryProxmox(server: Server): Promise<ProxmoxStats> {
     return { available: false, error: 'PROXMOX_URL / PROXMOX_TOKEN non configurés' }
   }
 
-  const url = `${base}/api2/json/nodes/${ref.node}/${ref.type}/${ref.vmid}/status/current`
+  // Encode each path segment — `node` comes from admin-managed data and must
+  // not be able to alter the request path.
+  const node = encodeURIComponent(ref.node)
+  const vmid = encodeURIComponent(String(ref.vmid))
+  const url = `${base}/api2/json/nodes/${node}/${ref.type}/${vmid}/status/current`
   const insecure = process.env.PROXMOX_INSECURE_TLS === 'true'
 
   try {
