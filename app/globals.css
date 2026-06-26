@@ -1,116 +1,134 @@
 @import "tailwindcss";
 
-/* Dark "gaming" theme. Tokens defined here become Tailwind utilities,
-   e.g. bg-surface, text-muted, border-line, text-accent. */
-@theme {
-  --color-bg: #05070c;
-  --color-surface: #12171f;
-  --color-surface-2: #1a212c;
-  --color-line: #232c39;
-  --color-fg: #e7ecf2;
-  --color-muted: #8a96a6;
-  --color-accent: #34d399;
-  --color-accent-2: #22d3ee;
-  --color-danger: #f87171;
-  --color-warn: #fbbf24;
+/* ───────────────────────────────────────────────────────────────────────────
+   DServ — theme "Turquoise & lait framboise".
+   Deep cool ink everywhere, a starfield + black-hole canvas backdrop, and a two-colour
+   accent system: turquoise carries the primary / live / system meaning, the
+   milky-raspberry "berry" adds warm pops on a few brand moments. Game art stays
+   the content; text always sits on opaque panels.
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+   Tokens here become Tailwind utilities, e.g. bg-panel, text-accent, text-berry.
+   ──────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Surfaces */
+  --color-bg: #080c11;        /* deep cool ink — header and background alike */
+  --color-panel: #0e151d;     /* console panels / cards (opaque) */
+  --color-panel-2: #18212c;   /* raised insets, chips, inputs */
+  --color-line: #23303d;      /* hairline borders / technical grid */
+
+  /* Back-compat aliases for untouched components. */
+  --color-surface: #0e151d;
+  --color-surface-2: #18212c;
+
+  /* Text */
+  --color-fg: #eaf0f5;
+  --color-muted: #94a4b5;
+
+  /* Accents */
+  --color-accent: #34d6c5;    /* turquoise — primary / live / system */
+  --color-signal: #34d6c5;    /* alias: interactive chrome reads turquoise */
+  --color-berry: #f4a3c1;     /* milky raspberry — warm secondary pop */
+  --color-accent-2: #f4a3c1;  /* legacy alias → folds into berry */
+  --color-warn: #f0b429;      /* telemetry: rising load */
+  --color-danger: #fb7185;    /* offline / critical (warm rose-red) */
+
+  --font-display: var(--ff-display);
+  --font-sans: var(--ff-body);
+  --font-mono: var(--ff-mono);
 }
 
 html {
   color-scheme: dark;
-  /* Base colour lives on <html>, not <body>: an opaque <body> background would
-     paint over the fixed `.ambient` layer (z-index: -1) and hide the glows. */
   background-color: var(--color-bg);
 }
 
 body {
   color: var(--color-fg);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ── Ambient background ─────────────────────────────────────────────────────
-   Decorative layer of oversized, blurred glows drifting through the dark.
-   Pinned behind all content; only `transform` is animated so the animation
-   runs entirely on the compositor (no per-frame layout or paint). */
-.ambient {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
-  pointer-events: none;
-  /* faint halo so the scene isn't pure black at the top */
-  background: radial-gradient(
-    1100px 700px at 50% -12%,
-    rgba(34, 211, 238, 0.05),
-    transparent 70%
-  );
-}
+/* ── Animated backdrop ───────────────────────────────────────────────────────
+   A starfield with a slowly drifting black hole that lenses the stars around
+   it. Rendered on a <canvas> by AmbientBackground (app/_components), so there
+   is no CSS layer here — the canvas is fixed at -z-10 behind all content. */
 
-.ambient__glow {
-  position: absolute;
-  width: 46vmax;
-  height: 46vmax;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.45;
-  /* `screen` makes overlapping glows add light, like real bloom */
-  mix-blend-mode: screen;
-  will-change: transform;
+/* ── Layout shell ────────────────────────────────────────────────────────────
+   Constrains normal page content; full-bleed elements (the hero) opt out by
+   living outside it. */
+.shell {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
 }
-
-.ambient__glow--1 {
-  top: -14vmax;
-  left: -10vmax;
-  background: radial-gradient(circle, rgba(52, 211, 153, 0.55), transparent 65%);
-  animation: drift-1 26s ease-in-out infinite alternate;
-}
-
-.ambient__glow--2 {
-  right: -12vmax;
-  bottom: -16vmax;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.5), transparent 65%);
-  animation: drift-2 32s ease-in-out infinite alternate;
-}
-
-.ambient__glow--3 {
-  top: 28%;
-  left: 32%;
-  width: 34vmax;
-  height: 34vmax;
-  background: radial-gradient(circle, rgba(129, 140, 248, 0.42), transparent 65%);
-  animation: drift-3 38s ease-in-out infinite alternate;
-}
-
-@keyframes drift-1 {
-  from { transform: translate3d(0, 0, 0) scale(1); }
-  to   { transform: translate3d(18vw, 12vh, 0) scale(1.15); }
-}
-
-@keyframes drift-2 {
-  from { transform: translate3d(0, 0, 0) scale(1.1); }
-  to   { transform: translate3d(-16vw, -10vh, 0) scale(1); }
-}
-
-@keyframes drift-3 {
-  from { transform: translate3d(0, 0, 0) scale(0.9); }
-  to   { transform: translate3d(10vw, -14vh, 0) scale(1.2); }
-}
-
-/* Respect users who ask for less motion: keep the glows, drop the drift. */
-@media (prefers-reduced-motion: reduce) {
-  .ambient__glow {
-    animation: none;
+@media (min-width: 640px) {
+  .shell {
+    padding-inline: 1.5rem;
   }
 }
 
-/* Animated dot for the "online" status badge. */
+/* ── Telemetry eyebrow ───────────────────────────────────────────────────────
+   Section labels in the console voice: a warm berry tick + uppercase mono. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.eyebrow::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--color-berry);
+  box-shadow: 0 0 10px -1px var(--color-berry);
+}
+
+/* ── Connect prompt (signature) ──────────────────────────────────────────────
+   The featured world's address, rendered as a command you run to join. */
+.connect-caret {
+  color: var(--color-berry);
+  font-weight: 700;
+}
+
+/* ── Live status dot ─────────────────────────────────────────────────────────
+   Pulsing ring on the "online" indicator (turquoise). */
 @keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.55); }
-  70% { box-shadow: 0 0 0 6px rgba(52, 211, 153, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(52, 214, 197, 0.5); }
+  70% { box-shadow: 0 0 0 6px rgba(52, 214, 197, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 214, 197, 0); }
 }
 .live-dot {
   animation: pulse-ring 1.8s infinite;
+}
+
+/* Blinking caret used in the status line / prompt. */
+@keyframes caret-blink {
+  0%, 60% { opacity: 1; }
+  61%, 100% { opacity: 0.15; }
+}
+.caret-blink {
+  animation: caret-blink 1.2s steps(1) infinite;
+}
+
+/* ── Quality floor ───────────────────────────────────────────────────────────
+   Visible keyboard focus everywhere, and motion honoured. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+::selection {
+  background: rgba(244, 163, 193, 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot,
+  .caret-blink {
+    animation: none;
+  }
 }

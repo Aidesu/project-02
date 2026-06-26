@@ -26,21 +26,19 @@ export default async function HistoriquePage() {
   const totalDownloads = items.reduce((sum, item) => sum + item.downloads, 0);
 
   return (
-    <div className="space-y-8">
+    <div className="shell space-y-8 py-12 sm:py-16">
       {/* Header band */}
-      <section className="relative isolate overflow-hidden rounded-3xl border border-line p-6 sm:p-8">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-surface to-bg" />
+      <section className="relative isolate overflow-hidden rounded-xl border border-line p-6 sm:p-8">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-panel to-bg" />
         <div
           className="absolute inset-0 -z-10"
           style={{
             backgroundImage:
-              "radial-gradient(700px 240px at 88% -30%, rgba(34,211,238,0.12), transparent 60%)",
+              "radial-gradient(700px 240px at 88% -30%, rgba(244,163,193,0.10), transparent 60%)",
           }}
         />
-        <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs text-muted">
-          🗃️ Archives
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+        <p className="eyebrow">Archives · hors service</p>
+        <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
           Historique
         </h1>
         <p className="mt-2 max-w-2xl text-muted">
@@ -48,14 +46,14 @@ export default async function HistoriquePage() {
           téléchargeables.
         </p>
         {archived.length > 0 ? (
-          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted">
+          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 font-mono text-sm text-muted">
             <span>
-              <strong className="font-mono text-fg">{archived.length}</strong>{" "}
-              serveur{archived.length > 1 ? "s" : ""} archivé
+              <strong className="text-fg">{archived.length}</strong> serveur
+              {archived.length > 1 ? "s" : ""} archivé
               {archived.length > 1 ? "s" : ""}
             </span>
             <span>
-              <strong className="font-mono text-fg">{totalDownloads}</strong>{" "}
+              <strong className="text-fg">{totalDownloads}</strong>{" "}
               téléchargement{totalDownloads > 1 ? "s" : ""}
             </span>
           </div>
@@ -63,7 +61,7 @@ export default async function HistoriquePage() {
       </section>
 
       {archived.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-line bg-surface/50 p-10 text-center text-muted">
+        <p className="rounded-xl border border-dashed border-line bg-panel/50 p-10 text-center text-muted">
           Aucun serveur archivé pour l&apos;instant.
         </p>
       ) : (

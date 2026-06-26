@@ -71,7 +71,7 @@ export function HistoryExplorer({ items }: { items: HistoryItem[] }) {
   return (
     <div className="space-y-5">
       {/* Filter bar */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface/60 p-3 sm:p-4">
+      <div className="flex flex-col gap-3 rounded-xl border border-line bg-panel/60 p-3 sm:p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <label className="relative flex-1">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted">
@@ -82,7 +82,7 @@ export function HistoryExplorer({ items }: { items: HistoryItem[] }) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Rechercher un serveur, un tag…"
-              className="w-full rounded-xl border border-line bg-bg/60 py-2 pl-9 pr-3 text-sm text-fg placeholder:text-muted focus:border-accent/50 focus:outline-none"
+              className="w-full rounded-lg border border-line bg-bg/60 py-2 pl-9 pr-3 text-sm text-fg placeholder:text-muted focus:border-signal/60 focus:outline-none"
             />
           </label>
 
@@ -121,12 +121,12 @@ export function HistoryExplorer({ items }: { items: HistoryItem[] }) {
       </p>
 
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-line bg-surface/50 p-10 text-center text-muted">
+        <div className="rounded-xl border border-dashed border-line bg-panel/50 p-10 text-center text-muted">
           <p className="text-2xl">🗃️</p>
           <p className="mt-2">Aucun serveur ne correspond à ces filtres.</p>
           <button
             onClick={reset}
-            className="mt-3 text-sm text-accent hover:underline"
+            className="mt-3 text-sm text-signal hover:underline"
           >
             Réinitialiser les filtres
           </button>
@@ -137,15 +137,15 @@ export function HistoryExplorer({ items }: { items: HistoryItem[] }) {
             <li key={item.slug}>
               <Link
                 href={`/serveurs/${item.slug}`}
-                className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface transition-colors hover:border-accent/40"
+                className="group flex h-full flex-col overflow-hidden rounded-xl border border-line bg-panel transition-colors hover:border-signal/40"
               >
                 <div className="relative">
-                  <GameBanner game={item.game} image={item.image} className="h-28" />
-                  <span className="absolute left-3 top-3 rounded-md bg-bg/70 px-2 py-0.5 text-[11px] text-muted ring-1 ring-line backdrop-blur">
+                  <GameBanner game={item.game} image={item.image} className="h-36" />
+                  <span className="absolute left-3 top-3 rounded-md bg-bg/90 px-2 py-0.5 font-mono text-[11px] text-muted ring-1 ring-line backdrop-blur">
                     Archivé
                   </span>
                   {item.downloads > 0 ? (
-                    <span className="absolute right-3 top-3 rounded-md bg-bg/70 px-2 py-0.5 text-[11px] text-accent ring-1 ring-accent/30 backdrop-blur">
+                    <span className="absolute right-3 top-3 rounded-md bg-bg/90 px-2 py-0.5 font-mono text-[11px] text-signal ring-1 ring-signal/30 backdrop-blur">
                       ⬇ {item.downloads}
                     </span>
                   ) : null}
@@ -153,14 +153,16 @@ export function HistoryExplorer({ items }: { items: HistoryItem[] }) {
 
                 <div className="flex flex-1 flex-col gap-2 p-4">
                   <div>
-                    <h2 className="font-semibold tracking-tight">{item.name}</h2>
-                    <p className="text-xs text-muted">
+                    <h2 className="font-display font-semibold tracking-tight">
+                      {item.name}
+                    </h2>
+                    <p className="font-mono text-[11px] text-muted">
                       {item.game.emoji} {item.game.label}
                     </p>
                   </div>
                   <p className="line-clamp-2 text-sm text-muted">{item.summary}</p>
 
-                  <p className="mt-auto text-xs text-muted">
+                  <p className="mt-auto font-mono text-[11px] text-muted">
                     {formatDate(item.startedAt)}
                     {item.endedAt ? ` → ${formatDate(item.endedAt)}` : ""}
                   </p>
@@ -170,7 +172,7 @@ export function HistoryExplorer({ items }: { items: HistoryItem[] }) {
                       {item.tags.slice(0, 4).map((tag) => (
                         <span
                           key={tag}
-                          className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[11px] text-muted"
+                          className="rounded-md bg-panel-2 px-1.5 py-0.5 font-mono text-[11px] text-muted"
                         >
                           #{tag}
                         </span>
@@ -220,9 +222,9 @@ function Chip({
   return (
     <button
       onClick={onClick}
-      className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+      className={`rounded-md border px-3 py-1 font-mono text-xs transition-colors ${
         active
-          ? "border-accent/40 bg-accent/15 text-accent"
+          ? "border-signal/40 bg-signal/15 text-signal"
           : "border-line bg-bg/40 text-muted hover:text-fg"
       }`}
     >

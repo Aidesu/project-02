@@ -1,6 +1,6 @@
 <div align="center">
 
-# Deafiaa Serv
+# DServ
 
 **Live status and showcase for community game servers.**
 
@@ -37,7 +37,7 @@ The server of the moment, the live status of running worlds, the games on offer 
 
 ## 🔎 Overview
 
-**Deafiaa Serv** is a self-hosted dashboard that showcases a community's game servers and their live status. It highlights the featured _"server of the moment"_ with its connection address, lists the other worlds currently running and the games on offer, and keeps an archive of past seasons whose world saves and files stay downloadable.
+**DServ** is a self-hosted dashboard that showcases a community's game servers and their live status. It highlights the featured _"server of the moment"_ with its connection address, lists the other worlds currently running and the games on offer, and keeps an archive of past seasons whose world saves and files stay downloadable.
 
 ---
 

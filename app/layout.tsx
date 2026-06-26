@@ -1,24 +1,33 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "./_components/SiteHeader";
 import { SiteFooter } from "./_components/SiteFooter";
+import { StatusLine } from "./_components/StatusLine";
 import { AmbientBackground } from "./_components/AmbientBackground";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Display — headings, server names, wordmark. A mechanical-but-warm grotesque.
+const display = Space_Grotesk({
+  variable: "--ff-display",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// Body — summaries and prose. Neutral and highly legible at small sizes.
+const body = Inter({
+  variable: "--ff-body",
+  subsets: ["latin"],
+});
+
+// Telemetry voice — IPs, pings, counts, labels, the connect prompt.
+const mono = JetBrains_Mono({
+  variable: "--ff-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Deafiaa Serv — serveurs de jeu",
-    template: "%s · Deafiaa Serv",
+    default: "DServ — serveurs de jeu",
+    template: "%s · DServ",
   },
   description:
     "Le serveur du moment, son adresse de connexion et son statut en direct, avec les autres serveurs et l'historique.",
@@ -32,14 +41,13 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${display.variable} ${body.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <AmbientBackground />
         <SiteHeader />
-        <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-          {children}
-        </main>
+        <StatusLine />
+        <main className="flex-1 w-full pb-20">{children}</main>
         <SiteFooter />
       </body>
     </html>

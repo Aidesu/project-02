@@ -20,15 +20,17 @@ export function ServerCard({ server, game }: { server: Server; game: GameInfo })
   return (
     <Link
       href={`/serveurs/${server.slug}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-surface transition-colors hover:border-accent/40"
+      className="group flex flex-col overflow-hidden rounded-xl border border-line bg-panel transition-colors hover:border-signal/40"
     >
-      <GameBanner game={game} image={server.images?.[0]} className="h-28" />
+      <GameBanner game={game} image={server.images?.[0]} className="h-40" />
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="truncate font-semibold tracking-tight">{server.name}</h3>
-            <p className="text-xs text-muted">
+            <h3 className="truncate font-display font-semibold tracking-tight">
+              {server.name}
+            </h3>
+            <p className="font-mono text-[11px] text-muted">
               {game.emoji} {game.label}
             </p>
           </div>
@@ -37,10 +39,12 @@ export function ServerCard({ server, game }: { server: Server; game: GameInfo })
 
         <p className="line-clamp-2 text-sm text-muted">{server.summary}</p>
 
-        <div className="mt-auto space-y-2.5">
+        <div className="mt-auto space-y-2.5 border-t border-line pt-3">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted">Joueurs</span>
-            <span className="font-mono">
+            <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted">
+              Joueurs
+            </span>
+            <span className="font-mono text-fg">
               {players ? `${players.current} / ${players.max}` : "—"}
             </span>
           </div>

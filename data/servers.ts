@@ -11,156 +11,157 @@ import type { Server } from "@/lib/types";
 //  - downloads.url  → lien externe (Drive, Mega...) à la place du fichier local
 //  - images        → fichiers dans public/servers/<slug>/  (ex. /servers/smp/1.jpg)
 //
-//  Les valeurs ci-dessous sont des EXEMPLES : remplacez-les par les vôtres.
+//  TOUTES les valeurs ci-dessous sont des EXEMPLES anonymes (noms, adresses,
+//  textes, IDs Proxmox). Remplacez-les par les vôtres. Aucune donnée réelle ici.
+//  Ce catalogue ne sert qu'à amorcer une base VIDE (voir scripts/db-init.ts) :
+//  une fois en prod, les serveurs s'éditent via /admin, pas dans ce fichier.
 // ─────────────────────────────────────────────────────────────────────────
 
 export const servers: Server[] = [
     {
-        slug: "smp-vanilla",
-        name: "All The Forge 10 (custom)",
+        slug: "serveur-survie",
+        name: "Serveur Survie — Exemple",
         gameId: "minecraft",
         current: true,
         summary:
-            "Survie multijoueur vanilla, saison 4. Économie communautaire et grandes constructions.",
+            "Exemple de serveur mis en avant. Remplacez ce texte par la présentation de votre serveur.",
         description:
-            "Serveur survie sans gros mods de gameplay : on garde l'expérience Minecraft d'origine, " +
-            "avec quelques plugins de confort (claims de territoire, /home, économie). " +
-            "La map est repartie de zéro pour la saison 4.",
-        query: { host: "mc.exemple.fr", port: 25565 },
-        connect: "wrench-johns.gl.joinmc.link",
-        proxmox: { node: "pve", vmid: 101, type: "lxc" },
+            "Texte d'exemple pour la fiche détaillée d'un serveur. Décrivez ici le type de " +
+            "partie, les règles, les plugins ou mods éventuels et tout ce qui est utile aux joueurs.",
+        query: { host: "jeu.exemple.com", port: 25565 },
+        connect: "jouer.exemple.com",
+        proxmox: { node: "pve", vmid: 100, type: "lxc" },
         startedAt: "2026-03-01",
-        tags: ["survie", "vanilla+", "communautaire"],
+        tags: ["exemple", "survie", "communautaire"],
         mods: [
             {
                 name: "Aucun mod requis",
                 required: false,
-                note: "Client Minecraft vanilla suffisant.",
+                note: "Exemple : un client de base suffit pour se connecter.",
             },
         ],
         downloads: [
             {
-                label: "Map de la saison 3 (archive)",
-                file: "world-saison3.zip",
+                label: "Fichier d'exemple (archive)",
+                file: "exemple.zip",
                 description:
-                    "Le monde complet de la saison précédente, à charger en solo.",
+                    "Exemple de téléchargement servi depuis DOWNLOADS_DIR/<slug>/.",
             },
         ],
     },
     {
-        slug: "modpack-atm",
-        name: "All The Mods 9",
+        slug: "serveur-modde",
+        name: "Serveur Moddé — Exemple",
         gameId: "minecraft",
         summary:
-            "Serveur moddé ATM9 : tech, magie et exploration. Nécessite le modpack côté client.",
+            "Exemple de serveur qui demande un modpack côté client pour se connecter.",
         description:
-            "Gros pack tech/magie basé sur Forge. Le modpack est obligatoire pour se connecter — " +
-            "installez-le via CurseForge avant de rejoindre.",
-        query: { host: "atm9.exemple.fr", port: 25565 },
-        connect: "atm9.exemple.fr",
-        proxmox: { node: "pve", vmid: 102, type: "qemu" },
+            "Texte d'exemple. Indiquez ici le modpack requis et la marche à suivre pour " +
+            "l'installer avant de rejoindre le serveur.",
+        query: { host: "modde.exemple.com", port: 25565 },
+        connect: "modde.exemple.com",
+        proxmox: { node: "pve", vmid: 101, type: "qemu" },
         startedAt: "2026-04-15",
-        tags: ["moddé", "forge", "tech", "magie"],
+        tags: ["exemple", "moddé"],
         mods: [
             {
-                name: "All The Mods 9",
-                url: "https://www.curseforge.com/minecraft/modpacks/all-the-mods-9",
+                name: "Modpack d'exemple",
+                url: "https://exemple.com/modpack",
                 required: true,
-                note: "Installer la même version que le serveur via le launcher CurseForge.",
+                note: "Exemple : installer la même version que le serveur.",
             },
         ],
         downloads: [
             {
-                label: "Liste des mods (CurseForge)",
-                url: "https://www.curseforge.com/minecraft/modpacks/all-the-mods-9",
+                label: "Lien externe d'exemple",
+                url: "https://exemple.com/modpack",
             },
         ],
     },
     {
-        slug: "valheim-vikings",
-        name: "Valheim — Les Drakkars",
+        slug: "serveur-coop",
+        name: "Serveur Coop — Exemple",
         gameId: "valheim",
         summary:
-            "Exploration et boss en coopération. Serveur dédié privé entre amis.",
+            "Exemple de serveur coopératif privé pour quelques joueurs.",
         description:
-            "Aventure coopérative Valheim. Progression douce, sessions le week-end.",
-        query: { host: "valheim.exemple.fr", port: 2457 },
-        connect: "valheim.exemple.fr:2456",
-        proxmox: { node: "pve", vmid: 103, type: "lxc" },
+            "Texte d'exemple décrivant une partie en coopération. À remplacer par vos propres informations.",
+        query: { host: "coop.exemple.com", port: 2457 },
+        connect: "coop.exemple.com:2456",
+        proxmox: { node: "pve", vmid: 102, type: "lxc" },
         startedAt: "2026-05-20",
-        tags: ["coop", "survie", "viking"],
+        tags: ["exemple", "coop"],
     },
     {
-        slug: "ark-island",
-        name: "ARK — The Island",
+        slug: "serveur-pve",
+        name: "Serveur PvE — Exemple",
         gameId: "ark",
         summary:
-            "Survie et dressage de dinos en coopération. Rates boostés pour des sessions plus rapides.",
+            "Exemple de serveur PvE avec des réglages personnalisés.",
         description:
-            "Serveur ARK: Survival sur la map The Island. Taux de récolte, d'XP et d'éclosion augmentés " +
-            "pour progresser sans y passer ses nuits. PvE entre amis, tribus autorisées.",
-        query: { host: "ark.exemple.fr", port: 27015 },
-        connect: "ark.exemple.fr:7777",
-        proxmox: { node: "pve", vmid: 104, type: "qemu" },
+            "Texte d'exemple. Décrivez ici les réglages du serveur (taux, règles, mode de jeu, etc.).",
+        query: { host: "pve.exemple.com", port: 27015 },
+        connect: "pve.exemple.com:7777",
+        proxmox: { node: "pve", vmid: 103, type: "qemu" },
         startedAt: "2026-06-01",
-        tags: ["survie", "coop", "dinos", "pve"],
+        tags: ["exemple", "pve", "coop"],
     },
     {
-        slug: "smp-saison3",
-        name: "SMP Entre Potes — Saison 3",
+        slug: "archive-saison-2",
+        name: "Saison Précédente — Exemple",
         gameId: "minecraft",
         summary:
-            "Édition précédente du SMP, archivée. La map reste téléchargeable.",
+            "Exemple de serveur archivé. La map reste téléchargeable.",
         description:
-            "Saison 3 terminée. Conservée ici pour l'historique et le téléchargement de la map.",
+            "Texte d'exemple pour une entrée d'historique. Conservée pour l'archive et le téléchargement.",
         startedAt: "2025-09-01",
         endedAt: "2026-02-25",
         archived: true,
-        tags: ["survie", "archive"],
+        tags: ["exemple", "archive"],
         downloads: [
-            { label: "Map complète (world)", file: "world-saison3.zip" },
+            { label: "Archive d'exemple (world)", file: "exemple-archive.zip" },
         ],
     },
     {
-        slug: "smp-saison2",
-        name: "SMP Entre Potes — Saison 2",
+        slug: "archive-saison-1",
+        name: "Ancienne Saison — Exemple",
         gameId: "minecraft",
         summary:
-            "Deuxième saison du SMP, archivée. La map complète reste téléchargeable.",
+            "Exemple de serveur archivé, avec un fichier à télécharger.",
         description:
-            "Saison 2 terminée. Conservée ici pour l'historique et le téléchargement de la map.",
+            "Texte d'exemple pour une entrée d'historique plus ancienne.",
         startedAt: "2025-03-10",
         endedAt: "2025-08-20",
         archived: true,
-        tags: ["survie", "archive"],
+        tags: ["exemple", "archive"],
         downloads: [
-            { label: "Map complète (world)", file: "world-saison2.zip" },
+            { label: "Archive d'exemple (world)", file: "exemple-archive-ancienne.zip" },
         ],
     },
     {
-        slug: "valheim-midgard",
-        name: "Valheim — Midgard",
+        slug: "archive-coop",
+        name: "Ancien Serveur Coop — Exemple",
         gameId: "valheim",
         summary:
-            "Ancien monde Valheim, tous les boss vaincus. Serveur arrêté en fin de saison.",
+            "Exemple de serveur coopératif archivé en fin de saison.",
         description:
-            "Première aventure Valheim du groupe. Archivée après avoir bouclé le contenu.",
+            "Texte d'exemple. Serveur conservé dans l'historique après la fin de la partie.",
         startedAt: "2025-06-01",
         endedAt: "2025-11-15",
         archived: true,
-        tags: ["coop", "viking", "archive"],
+        tags: ["exemple", "coop", "archive"],
     },
     {
-        slug: "rust-vanilla-s1",
-        name: "Rust — Wipe Saison 1",
+        slug: "archive-pvp",
+        name: "Ancien Serveur PvP — Exemple",
         gameId: "rust",
         summary:
-            "Serveur Rust vanilla, première saison. Wipe final effectué et serveur retiré.",
+            "Exemple de serveur PvP archivé après la fin de la saison.",
         description:
-            "Saison Rust vanilla entre amis, PvP. Retiré après le wipe de fin de saison.",
+            "Texte d'exemple. Serveur retiré et conservé ici pour l'historique.",
         startedAt: "2025-10-05",
         endedAt: "2026-01-10",
         archived: true,
-        tags: ["pvp", "vanilla", "archive"],
+        tags: ["exemple", "pvp", "archive"],
     },
 ];

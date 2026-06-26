@@ -3,17 +3,25 @@ import Link from "next/link";
 export function SiteFooter() {
   const year = new Date().getFullYear();
   return (
-    <footer className="border-t border-line/70">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6 text-sm text-muted flex flex-col sm:flex-row items-center justify-between gap-2">
-        <span className="flex items-center gap-2">
-          <span className="grid h-5 w-5 place-items-center rounded-md bg-gradient-to-br from-accent to-accent-2 text-[10px] font-bold text-bg">
+    <footer className="border-t border-line">
+      <div className="shell flex flex-col items-center justify-between gap-2 py-6 font-mono text-xs text-muted sm:flex-row">
+        <span className="flex items-center gap-2.5">
+          <span className="grid h-5 w-5 place-items-center rounded bg-gradient-to-br from-accent to-berry text-[10px] font-bold text-bg">
             DS
           </span>
-          Deafiaa Serv · © {year}
+          <span className="uppercase tracking-[0.12em]">
+            DServ · © {year}
+          </span>
         </span>
         <span className="flex items-center gap-3">
-          Statut des serveurs rafraîchi en direct.
-          <Link href="/admin" className="text-muted/70 transition-colors hover:text-fg">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-accent live-dot" />
+            statut rafraîchi en direct
+          </span>
+          <Link
+            href="/admin"
+            className="uppercase tracking-[0.12em] text-muted/60 transition-colors hover:text-signal"
+          >
             Admin
           </Link>
         </span>

@@ -34,10 +34,10 @@ export default async function ServerDetailPage(props: PageProps<"/serveurs/[slug
   const address = serverAddress(server);
 
   return (
-    <div className="space-y-8">
+    <div className="shell space-y-8 py-10 sm:py-14">
       <Link
         href={server.archived ? "/historique" : "/"}
-        className="group inline-flex items-center gap-2 rounded-full border border-line bg-surface/80 py-1.5 pl-1.5 pr-4 text-sm text-muted backdrop-blur transition-colors hover:border-accent/40 hover:text-fg"
+        className="group inline-flex items-center gap-2 rounded-full border border-line bg-panel/80 py-1.5 pl-1.5 pr-4 text-sm text-muted backdrop-blur transition-colors hover:border-signal/40 hover:text-fg"
       >
         <span
           aria-hidden
@@ -53,22 +53,27 @@ export default async function ServerDetailPage(props: PageProps<"/serveurs/[slug
         <GameBanner game={game} image={server.images?.[0]} className="h-40 sm:h-52" />
         <div className="space-y-3 p-5">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-md bg-surface-2 px-2 py-0.5 text-xs">
+            <span className="rounded-md bg-panel-2 px-2.5 py-1 font-mono text-xs text-fg">
               {game.emoji} {game.label}
             </span>
             {server.archived ? (
-              <span className="rounded-md bg-surface-2 px-2 py-0.5 text-xs text-muted">
+              <span className="rounded-md bg-panel-2 px-2.5 py-1 font-mono text-xs text-muted">
                 Archivé
               </span>
             ) : null}
             {server.tags?.map((tag) => (
-              <span key={tag} className="rounded-md bg-accent/10 px-2 py-0.5 text-xs text-accent">
+              <span
+                key={tag}
+                className="rounded-md bg-panel-2 px-2.5 py-1 font-mono text-xs text-muted"
+              >
                 #{tag}
               </span>
             ))}
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">{server.name}</h1>
+          <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+            {server.name}
+          </h1>
           <p className="text-muted">{server.summary}</p>
 
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted">

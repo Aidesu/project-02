@@ -33,9 +33,9 @@ export function CopyButton({
       onClick={copy}
       title="Copier l'adresse"
       aria-label={`Copier ${value}`}
-      className={`group inline-flex items-center gap-2 font-mono transition-colors ${className}`}
+      className={`group inline-flex min-w-0 max-w-full items-center gap-2 font-mono transition-colors ${className}`}
     >
-      <span className="truncate">{label ?? value}</span>
+      <span className="min-w-0 truncate">{label ?? value}</span>
       <span
         className={`shrink-0 text-xs transition-colors ${
           copied ? "text-accent" : "text-muted group-hover:text-fg"
