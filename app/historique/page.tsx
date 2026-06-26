@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   description: "Les serveurs passés et leurs téléchargements.",
 };
 
+// Lecture BDD à la requête : la BDD n'existe qu'au runtime, pas au build.
+// Sans ceci, la page est figée au build sur le repli statique data/servers.ts.
+export const dynamic = "force-dynamic";
+
 export default async function HistoriquePage() {
   const archived = await getArchivedServers();
 

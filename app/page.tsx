@@ -9,6 +9,12 @@ import { getGame } from "@/lib/games";
 import { ServerCard } from "./_components/ServerCard";
 import { ServerHero } from "./_components/ServerHero";
 
+// Le catalogue vient de la BDD, injectée seulement au runtime (jamais au
+// `next build` — voir .dockerignore qui exclut .env*). Sans ceci, la page est
+// prérendue au build avec le repli statique data/servers.ts et sert ces données
+// d'exemple jusqu'à une revalidation. On force donc le rendu à la requête.
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const active = await getActiveServers();
   const current = await getCurrentServer();

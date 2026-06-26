@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getAllServers, getServer, serverAddress } from "@/lib/servers";
+import { getServer, serverAddress } from "@/lib/servers";
 import { getGame } from "@/lib/games";
 import { formatBytes, formatDate } from "@/lib/format";
 import { downloadFilePath, fileSize } from "@/lib/downloads";
@@ -12,9 +12,11 @@ import { LiveStatusPanel } from "../../_components/LiveStatusPanel";
 import { ServerHistory } from "../../_components/ServerHistory";
 import { CopyButton } from "../../_components/CopyButton";
 
-export async function generateStaticParams() {
-  return (await getAllServers()).map((s) => ({ slug: s.slug }));
-}
+// Lecture BDD à la requête : la BDD n'existe qu'au runtime, pas au build.
+// Sans ceci, la page serait prérendue au build avec le repli statique
+// data/servers.ts et servirait ces données d'exemple. force-dynamic supprime le
+// prérendu ; generateStaticParams (qui lisait ce repli) n'a donc plus lieu d'être.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(
   props: PageProps<"/serveurs/[slug]">,
