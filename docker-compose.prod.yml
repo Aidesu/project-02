@@ -11,7 +11,7 @@ name: deafiaa-serv
 #    APP_IMAGE, APP_PORT, PROXMOX_*, DOWNLOADS_*                   (optional)
 #
 #  DATABASE_URL must use the service name `db` as host, e.g.
-#    postgresql://deafiaa:<POSTGRES_PASSWORD>@db:5432/deafiaa_serv
+#    postgresql://appuser:<POSTGRES_PASSWORD>@db:5432/appdb
 #
 #  The app self-migrates on boot (migrations + seed-if-empty), so there is no
 #  separate migrate service to run.
@@ -22,13 +22,15 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-deafiaa}
+      POSTGRES_USER: ${POSTGRES_USER:-appuser}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the stack env}
-      POSTGRES_DB: ${POSTGRES_DB:-deafiaa_serv}
+      POSTGRES_DB: ${POSTGRES_DB:-appdb}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-deafiaa} -d ${POSTGRES_DB:-deafiaa_serv}"]
+      # Use the container's own env so the check always matches the real DB,
+      # whatever POSTGRES_USER/POSTGRES_DB resolve to ($$ → literal $).
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 10

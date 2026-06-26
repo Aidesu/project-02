@@ -18,13 +18,18 @@ function byStartDateDesc(a: Server, b: Server): number {
 const loadAll = cache(async (): Promise<Server[]> => {
   if (hasDatabase()) {
     try {
-      return await loadServersFromDb()
+      const rows = await loadServersFromDb()
+      if (rows.length > 0) return rows
+      // DB joignable mais vide (pas encore seedée, ou tout supprimé) : on
+      // retombe sur le catalogue statique plutôt que d'afficher un site vide.
+      console.warn(
+        '[servers] Base joignable mais vide — repli sur les données statiques.',
+      )
     } catch (err) {
       console.error(
         '[servers] Lecture DB échouée, repli sur les données statiques :',
         err,
       )
-      return staticServers
     }
   }
   return staticServers
