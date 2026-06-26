@@ -38,6 +38,8 @@ export default async function EditServerPage(
     archived: Boolean(server.archived),
     current: Boolean(server.current),
     tags: (server.tags ?? []).join(", "),
+    mods: server.mods ?? [],
+    downloads: server.downloads ?? [],
   };
 
   return (

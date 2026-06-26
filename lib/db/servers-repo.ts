@@ -1,8 +1,16 @@
 import 'server-only'
 import { and, eq, ne } from 'drizzle-orm'
 import { getDb } from './client'
-import { servers as serversTable } from './schema'
-import type { Server } from '../types'
+import {
+  serverDownloads as serverDownloadsTable,
+  serverMods as serverModsTable,
+  servers as serversTable,
+} from './schema'
+import type { DownloadEntry, ModEntry, Server } from '../types'
+
+type Db = ReturnType<typeof getDb>
+/** A transaction handle exposes the same query builders as the root client. */
+type Executor = Db | Parameters<Parameters<Db['transaction']>[0]>[0]
 
 type ServerRow = typeof import('./schema').servers.$inferSelect
 type ModRow = typeof import('./schema').serverMods.$inferSelect
@@ -84,6 +92,8 @@ export interface ServerInput {
   archived: boolean
   current: boolean
   tags: string[]
+  mods: ModEntry[]
+  downloads: DownloadEntry[]
 }
 
 function toRow(input: ServerInput) {
@@ -108,18 +118,65 @@ function toRow(input: ServerInput) {
 }
 
 /** Ensure at most one server is flagged `current`. */
-async function clearCurrentFlag(exceptSlug?: string): Promise<void> {
-  const db = getDb()
+async function clearCurrentFlag(
+  exec: Executor,
+  exceptSlug?: string,
+): Promise<void> {
   const where = exceptSlug
     ? and(eq(serversTable.current, true), ne(serversTable.slug, exceptSlug))
     : eq(serversTable.current, true)
-  await db.update(serversTable).set({ current: false }).where(where)
+  await exec.update(serversTable).set({ current: false }).where(where)
+}
+
+/**
+ * Replace a server's mods and downloads with the submitted set. The catalog is
+ * small and edited rarely, so a delete-then-insert (mirroring the seed) keeps
+ * the write path simple and avoids diffing child rows.
+ */
+async function replaceChildren(
+  exec: Executor,
+  serverId: number,
+  input: ServerInput,
+): Promise<void> {
+  await exec.delete(serverModsTable).where(eq(serverModsTable.serverId, serverId))
+  await exec
+    .delete(serverDownloadsTable)
+    .where(eq(serverDownloadsTable.serverId, serverId))
+
+  if (input.mods.length) {
+    await exec.insert(serverModsTable).values(
+      input.mods.map((m) => ({
+        serverId,
+        name: m.name,
+        url: m.url ?? null,
+        required: m.required,
+        note: m.note ?? null,
+      })),
+    )
+  }
+  if (input.downloads.length) {
+    await exec.insert(serverDownloadsTable).values(
+      input.downloads.map((d) => ({
+        serverId,
+        label: d.label,
+        file: d.file ?? null,
+        url: d.url ?? null,
+        description: d.description ?? null,
+      })),
+    )
+  }
 }
 
 export async function createServer(input: ServerInput): Promise<void> {
   const db = getDb()
-  if (input.current) await clearCurrentFlag()
-  await db.insert(serversTable).values(toRow(input))
+  await db.transaction(async (tx) => {
+    if (input.current) await clearCurrentFlag(tx)
+    const [row] = await tx
+      .insert(serversTable)
+      .values(toRow(input))
+      .returning({ id: serversTable.id })
+    await replaceChildren(tx, row.id, input)
+  })
 }
 
 export async function updateServer(
@@ -127,11 +184,16 @@ export async function updateServer(
   input: ServerInput,
 ): Promise<void> {
   const db = getDb()
-  if (input.current) await clearCurrentFlag(originalSlug)
-  await db
-    .update(serversTable)
-    .set({ ...toRow(input), updatedAt: new Date() })
-    .where(eq(serversTable.slug, originalSlug))
+  await db.transaction(async (tx) => {
+    if (input.current) await clearCurrentFlag(tx, originalSlug)
+    const [row] = await tx
+      .update(serversTable)
+      .set({ ...toRow(input), updatedAt: new Date() })
+      .where(eq(serversTable.slug, originalSlug))
+      .returning({ id: serversTable.id })
+    if (!row) return // slug not found — nothing to update
+    await replaceChildren(tx, row.id, input)
+  })
 }
 
 export async function deleteServer(slug: string): Promise<void> {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import { Space_Grotesk, Karla, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "./_components/SiteHeader";
 import { SiteFooter } from "./_components/SiteFooter";
@@ -10,18 +10,22 @@ import { AmbientBackground } from "./_components/AmbientBackground";
 const display = Space_Grotesk({
   variable: "--ff-display",
   subsets: ["latin"],
+  display: "swap",
 });
 
-// Body — summaries and prose. Neutral and highly legible at small sizes.
-const body = Inter({
+// Body & UI — summaries, prose, labels, nav. Karla: a humanist grotesque with
+// a touch more warmth and character than a neutral workhorse, still crisp small.
+const body = Karla({
   variable: "--ff-body",
   subsets: ["latin"],
+  display: "swap",
 });
 
 // Telemetry voice — IPs, pings, counts, labels, the connect prompt.
 const mono = JetBrains_Mono({
   variable: "--ff-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {

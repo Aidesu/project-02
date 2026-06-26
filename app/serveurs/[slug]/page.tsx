@@ -208,14 +208,39 @@ function DownloadsSection({ server }: { server: Server }) {
       <ul className="space-y-2">
         {downloads.map((dl) => {
           const isLocal = Boolean(dl.file);
+          const filePath = isLocal && dl.file ? downloadFilePath(server, dl.file) : null;
+          const size = filePath ? fileSize(filePath) : undefined;
+          // A declared local file with no bytes on disk (or DOWNLOADS_DIR unset)
+          // would 404 — show it as unavailable instead of a dead link.
+          const missing = isLocal && size == null;
           const href = isLocal
             ? `/api/download/${server.slug}/${encodeURIComponent(dl.file!)}`
             : dl.url;
-          const size = isLocal && dl.file
-            ? fileSize(downloadFilePath(server, dl.file) ?? "")
-            : undefined;
 
           if (!href) return null;
+
+          if (missing) {
+            return (
+              <li key={dl.label}>
+                <div
+                  aria-disabled
+                  className="flex items-center gap-3 rounded-xl border border-line border-dashed bg-surface-2/30 px-4 py-3 opacity-70"
+                >
+                  <span className="text-lg">⛔</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-medium">{dl.label}</span>
+                    {dl.description ? (
+                      <span className="block truncate text-xs text-muted">
+                        {dl.description}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="shrink-0 text-xs text-muted">indisponible</span>
+                </div>
+              </li>
+            );
+          }
+
           return (
             <li key={dl.label}>
               <a

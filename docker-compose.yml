@@ -44,9 +44,13 @@ services:
       PROXMOX_TOKEN: ${PROXMOX_TOKEN:-}
       PROXMOX_INSECURE_TLS: ${PROXMOX_INSECURE_TLS:-}
       DOWNLOADS_DIR: ${DOWNLOADS_DIR:-/srv/gameservers}
+      UPLOADS_DIR: ${UPLOADS_DIR:-/srv/uploads}
+      MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-}
     volumes:
-      # Read-only mount of the downloadable files (DOWNLOADS_DIR/<slug>/<file>).
+      # Read-only mount of out-of-band files (DOWNLOADS_DIR/<slug>/<file>).
       - ${DOWNLOADS_HOST_DIR:-./downloads}:${DOWNLOADS_DIR:-/srv/gameservers}:ro
+      # Read-write, app-owned store for admin uploads (UPLOADS_DIR/<slug>/<file>).
+      - ${UPLOADS_HOST_DIR:-./uploads}:${UPLOADS_DIR:-/srv/uploads}
     depends_on:
       db:
         condition: service_healthy

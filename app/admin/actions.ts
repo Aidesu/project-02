@@ -9,6 +9,7 @@ import {
   updateServer,
   type ServerInput,
 } from '@/lib/db/servers-repo'
+import { parseDownloads, parseMods } from '@/lib/admin-form'
 
 export interface FormState {
   error?: string
@@ -52,6 +53,11 @@ function parseInput(form: FormData): { input?: ServerInput; error?: string } {
     return { error: 'Le type Proxmox doit être « lxc » ou « qemu ».' }
   }
 
+  const downloads = parseDownloads(form)
+  if (downloads.error || !downloads.items) return { error: downloads.error }
+  const mods = parseMods(form)
+  if (mods.error || !mods.items) return { error: mods.error }
+
   const input: ServerInput = {
     slug,
     name,
@@ -72,6 +78,8 @@ function parseInput(form: FormData): { input?: ServerInput; error?: string } {
       .split(',')
       .map((t) => t.trim())
       .filter(Boolean),
+    mods: mods.items,
+    downloads: downloads.items,
   }
 
   if (input.queryPort != null && !Number.isInteger(input.queryPort)) {

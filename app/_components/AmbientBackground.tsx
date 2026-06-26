@@ -66,7 +66,9 @@ export function AmbientBackground() {
     }
 
     function seedStars() {
-      const count = Math.round(Math.min(600, (width * height) / 4500));
+      // Denser field (was /4500, cap 600): a fuller sky, but each star is finer
+      // (see `r` below) so more points read as "more stars", not "heavier".
+      const count = Math.round(Math.min(1000, (width * height) / 2800));
       stars = [];
       for (let i = 0; i < count; i++) {
         const z = Math.random();
@@ -74,13 +76,13 @@ export function AmbientBackground() {
           x: Math.random() * width,
           y: Math.random() * height,
           z,
-          r: 0.4 + z * z * 1.7, // most stars tiny, a few near ones larger
+          r: 0.3 + z * z * 1.05, // finer cores — most are pinpricks, few near ones ~1.3px
           b: 0.35 + z * 0.6,
           c: STAR_COLORS[(Math.random() * STAR_COLORS.length) | 0],
           tw: 0.5 + Math.random() * 2.2,
           ph: Math.random() * Math.PI * 2,
           amp: Math.random() < 0.75 ? 0.35 + Math.random() * 0.45 : 0,
-          glow: z > 0.85 && Math.random() < 0.65,
+          glow: z > 0.86 && Math.random() < 0.5, // fewer haloed stars, so they don't fatten
         });
       }
     }
@@ -114,11 +116,12 @@ export function AmbientBackground() {
         const alpha = Math.min(1, s.b * flick);
         if (alpha < 0.02) continue;
 
-        // Soft halo on the brighter stars so they "shine".
+        // Soft halo on the brighter stars so they "shine" — tighter and dimmer
+        // than before (was r*5 @ 0.5) so haloed stars read sharp, not blobby.
         if (s.glow) {
-          const gr = s.r * 5;
+          const gr = s.r * 3.6;
           const g = ctx!.createRadialGradient(px, py, 0, px, py, gr);
-          g.addColorStop(0, withAlpha(s.c, alpha * 0.5));
+          g.addColorStop(0, withAlpha(s.c, alpha * 0.38));
           g.addColorStop(1, withAlpha(s.c, 0));
           ctx!.globalAlpha = 1;
           ctx!.fillStyle = g;

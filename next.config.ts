@@ -20,6 +20,16 @@ const nextConfig: NextConfig = {
   // server.js) so the Docker runtime image stays small and needs no install.
   output: "standalone",
 
+  images: {
+    // Add a 5120 candidate above the default 3840 ceiling so the full-bleed
+    // hero stays crisp on 21:9+ / ultrawide displays instead of upscaling a
+    // 3840 render. (Defaults otherwise preserved.)
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840, 5120],
+    // Next 16 requires opting into any quality above the default 75. The hero
+    // art is rendered at 90 so the featured server reads sharp at large sizes.
+    qualities: [75, 90],
+  },
+
   // gamedig opens raw UDP/TCP sockets and must not be bundled by the
   // server compiler — keep it as a runtime Node dependency.
   serverExternalPackages: ["gamedig"],

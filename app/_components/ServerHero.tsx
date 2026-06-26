@@ -36,6 +36,7 @@ export function ServerHero({
           alt=""
           fill
           preload
+          quality={90}
           sizes="100vw"
           className="-z-20 object-cover"
         />
@@ -58,21 +59,33 @@ export function ServerHero({
       {/* Legibility scrim: near-opaque ink at the bottom, clear at the top. */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-t from-bg via-bg/80 to-bg/25" />
 
-      <div className="shell relative flex min-h-[32rem] flex-col justify-end py-8 sm:min-h-[62vh] sm:py-12">
-        {/* Live status, anchored to the top of the frame on its own solid chip. */}
-        <div className="absolute right-4 top-6 sm:right-6 sm:top-8">
-          <span className="inline-flex rounded-md bg-bg/85 p-0.5 ring-1 ring-line backdrop-blur">
-            <StatusBadge status={status} loading={loading} />
-          </span>
-        </div>
+      {/* Signature — registration marks frame the featured server like a live
+          monitor feed (the control-room thesis). Quiet turquoise, decorative. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-3 z-10 sm:inset-5"
+      >
+        <span className="absolute left-0 top-0 h-6 w-6 border-l-2 border-t-2 border-accent/40 sm:h-8 sm:w-8" />
+        <span className="absolute right-0 top-0 h-6 w-6 border-r-2 border-t-2 border-accent/40 sm:h-8 sm:w-8" />
+        <span className="absolute bottom-0 left-0 h-6 w-6 border-b-2 border-l-2 border-accent/40 sm:h-8 sm:w-8" />
+        <span className="absolute bottom-0 right-0 h-6 w-6 border-b-2 border-r-2 border-accent/40 sm:h-8 sm:w-8" />
+      </div>
 
+      {/* Live status — a readout chip docked in the framed top-right corner. */}
+      <div className="absolute right-5 top-5 z-10 sm:right-8 sm:top-8">
+        <span className="inline-flex rounded-md bg-bg/85 p-0.5 ring-1 ring-line backdrop-blur">
+          <StatusBadge status={status} loading={loading} />
+        </span>
+      </div>
+
+      <div className="shell relative flex min-h-[34rem] flex-col justify-end py-10 sm:min-h-[clamp(36rem,70vh,54rem)] sm:py-14">
         {/* HUD — solid console panel so text never sits on raw artwork. */}
         <div className="max-w-2xl rounded-xl border border-line bg-bg/85 p-5 backdrop-blur-md sm:p-6">
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-md bg-panel-2 px-2.5 py-1 font-mono text-xs text-fg">
               {game.emoji} {game.label}
             </span>
-            <span className="rounded-md bg-berry/15 px-2.5 py-1 font-mono text-xs font-medium text-berry ring-1 ring-berry/30">
+            <span className="rounded-md bg-accent px-2.5 py-1 font-mono text-xs font-semibold text-bg shadow-[0_0_18px_-4px] shadow-accent/60">
               ★ serveur actuel
             </span>
             {server.tags?.slice(0, 3).map((tag) => (
@@ -106,6 +119,9 @@ export function ServerHero({
                   value={address}
                   className="min-w-0 text-sm text-fg sm:text-base"
                 />
+                <span className="caret-blink shrink-0 text-accent" aria-hidden>
+                  ▌
+                </span>
               </div>
             </div>
           ) : null}

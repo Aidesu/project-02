@@ -90,9 +90,10 @@ body {
 }
 
 /* ── Connect prompt (signature) ──────────────────────────────────────────────
-   The featured world's address, rendered as a command you run to join. */
+   The featured world's address, rendered as a command you run to join. Turquoise
+   ties the prompt to the featured-server accent (the "★ serveur actuel" pill). */
 .connect-caret {
-  color: var(--color-berry);
+  color: var(--color-accent);
   font-weight: 700;
 }
 
