@@ -2,7 +2,7 @@
 
 /* ───────────────────────────────────────────────────────────────────────────
    DServ — theme "Turquoise & lait framboise".
-   Deep cool ink everywhere, a starfield + black-hole canvas backdrop, and a two-colour
+   Deep cool ink everywhere, a drifting twinkling-starfield canvas backdrop, and a two-colour
    accent system: turquoise carries the primary / live / system meaning, the
    milky-raspberry "berry" adds warm pops on a few brand moments. Game art stays
    the content; text always sits on opaque panels.
@@ -49,9 +49,10 @@ body {
 }
 
 /* ── Animated backdrop ───────────────────────────────────────────────────────
-   A starfield with a slowly drifting black hole that lenses the stars around
-   it. Rendered on a <canvas> by AmbientBackground (app/_components), so there
-   is no CSS layer here — the canvas is fixed at -z-10 behind all content. */
+   A starfield that gently drifts (with parallax) while stars twinkle, the
+   brighter ones haloed so they read as shining. Rendered on a <canvas> by
+   AmbientBackground (app/_components), so there is no CSS layer here — the
+   canvas is fixed at -z-10 behind all content. */
 
 /* ── Layout shell ────────────────────────────────────────────────────────────
    Constrains normal page content; full-bleed elements (the hero) opt out by

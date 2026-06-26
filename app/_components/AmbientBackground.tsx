@@ -3,14 +3,12 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Realistic black-hole backdrop: a starfield lensed by a slowly drifting point
- * mass. Each background star is bent by the actual point-mass lens equation,
- * β = θ − θ_E²/θ, which yields two images per star — a bright primary just
- * outside the Einstein radius and a faint secondary inside it — each scaled by
- * its magnification, so the Einstein ring emerges from the physics rather than
- * being drawn. The hole's own light is fully captured: a plain black shadow,
- * no accretion disk or glow. Canvas 2D, no deps; ~30fps, paused when hidden,
- * one static frame under prefers-reduced-motion. Decorative, a11y-hidden.
+ * Drifting starfield backdrop: a few hundred stars that twinkle and slowly pan
+ * across the deep ink, the brighter ones wearing a soft halo so they read as
+ * "shining". Depth (`z`) drives size, brightness and parallax, so nearer stars
+ * are larger and drift a touch faster. Pure Canvas 2D, no deps; ~30fps, paused
+ * when hidden, one still frame under prefers-reduced-motion. Decorative,
+ * a11y-hidden.
  */
 export function AmbientBackground() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -25,7 +23,8 @@ export function AmbientBackground() {
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
-    // Natural-ish stellar colours (blue-white through warm orange).
+    // Natural-ish stellar colours (blue-white through warm orange), plus a
+    // couple of faint brand tints (turquoise / berry) to tie into the theme.
     const STAR_COLORS = [
       "#eaf1ff",
       "#ffffff",
@@ -33,25 +32,55 @@ export function AmbientBackground() {
       "#cdddff",
       "#fff4e0",
       "#ffe7c2",
-      "#ffd6a8",
+      "#bff4ec", // faint turquoise
+      "#f7cfe0", // faint berry
     ];
 
-    type Star = { x: number; y: number; r: number; b: number; c: string };
+    type Star = {
+      x: number; // seed position (drift is added at draw time)
+      y: number;
+      z: number; // depth 0..1 → size, brightness, parallax speed
+      r: number; // radius in px
+      b: number; // base brightness 0..1
+      c: string; // colour
+      tw: number; // twinkle speed
+      ph: number; // twinkle phase
+      amp: number; // twinkle amplitude 0..1 (0 = steady star)
+      glow: boolean; // soft halo for the brighter stars
+    };
 
     let width = 0;
     let height = 0;
     let stars: Star[] = [];
 
+    // Very slow global drift (px/sec): the whole sky pans gently. Per-star
+    // parallax scales this by depth so the field has a sense of distance.
+    const DRIFT_X = 5.5;
+    const DRIFT_Y = -3;
+
+    const wrap = (v: number, max: number) => ((v % max) + max) % max;
+
+    function withAlpha(hex: string, a: number): string {
+      const n = parseInt(hex.slice(1), 16);
+      return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+    }
+
     function seedStars() {
-      const count = Math.round(Math.min(420, (width * height) / 6500));
+      const count = Math.round(Math.min(600, (width * height) / 4500));
       stars = [];
       for (let i = 0; i < count; i++) {
+        const z = Math.random();
         stars.push({
           x: Math.random() * width,
           y: Math.random() * height,
-          r: Math.random() * 1.0 + 0.35,
-          b: Math.random() * 0.5 + 0.45,
+          z,
+          r: 0.4 + z * z * 1.7, // most stars tiny, a few near ones larger
+          b: 0.35 + z * 0.6,
           c: STAR_COLORS[(Math.random() * STAR_COLORS.length) | 0],
+          tw: 0.5 + Math.random() * 2.2,
+          ph: Math.random() * Math.PI * 2,
+          amp: Math.random() < 0.75 ? 0.35 + Math.random() * 0.45 : 0,
+          glow: z > 0.85 && Math.random() < 0.65,
         });
       }
     }
@@ -68,101 +97,55 @@ export function AmbientBackground() {
       seedStars();
     }
 
-    // Einstein radius — the lensing scale, in px.
-    const einstein = () => Math.max(46, Math.min(width, height) * 0.08);
+    function draw(t: number) {
+      ctx!.clearRect(0, 0, width, height);
+      // Additive blending so overlapping glows build up light, not opacity.
+      ctx!.globalCompositeOperation = "lighter";
 
-    function holePos(t: number) {
-      const cx = width * 0.5;
-      const cy = height * 0.46;
-      const ax = width * 0.32;
-      const ay = height * 0.3;
-      return {
-        x: cx + Math.sin(t * 0.05) * ax + Math.sin(t * 0.012) * ax * 0.22,
-        y: cy + Math.cos(t * 0.04) * ay + Math.sin(t * 0.019) * ay * 0.2,
-      };
-    }
+      for (const s of stars) {
+        // Parallax drift, wrapped around the edges.
+        const px = wrap(s.x + DRIFT_X * s.z * t, width);
+        const py = wrap(s.y + DRIFT_Y * s.z * t, height);
 
-    // Draw one lensed image of a star at radius `rad` from the hole, along unit
-    // (ux,uy), brightened and tangentially stretched by its magnification.
-    function drawImage(
-      hx: number,
-      hy: number,
-      ux: number,
-      uy: number,
-      rad: number,
-      s: Star,
-      mu: number,
-    ) {
-      const alpha = Math.min(1, s.b * mu);
-      if (alpha < 0.02) return;
-      const px = hx + ux * rad;
-      const py = hy + uy * rad;
-      ctx!.globalAlpha = alpha;
-      ctx!.fillStyle = s.c;
+        // Twinkle: brightness breathes around its base value.
+        const flick = s.amp
+          ? 1 - s.amp + s.amp * (0.5 + 0.5 * Math.sin(t * s.tw + s.ph))
+          : 1;
+        const alpha = Math.min(1, s.b * flick);
+        if (alpha < 0.02) continue;
 
-      const tang = s.r * Math.min(4, 0.6 + mu * 0.5); // stretch along the arc
-      if (tang > s.r * 1.4) {
-        ctx!.save();
-        ctx!.translate(px, py);
-        ctx!.rotate(Math.atan2(uy, ux) + Math.PI / 2);
-        ctx!.beginPath();
-        ctx!.ellipse(0, 0, s.r, tang, 0, 0, Math.PI * 2);
-        ctx!.fill();
-        ctx!.restore();
-      } else {
+        // Soft halo on the brighter stars so they "shine".
+        if (s.glow) {
+          const gr = s.r * 5;
+          const g = ctx!.createRadialGradient(px, py, 0, px, py, gr);
+          g.addColorStop(0, withAlpha(s.c, alpha * 0.5));
+          g.addColorStop(1, withAlpha(s.c, 0));
+          ctx!.globalAlpha = 1;
+          ctx!.fillStyle = g;
+          ctx!.beginPath();
+          ctx!.arc(px, py, gr, 0, Math.PI * 2);
+          ctx!.fill();
+        }
+
+        // The star core.
+        ctx!.globalAlpha = alpha;
+        ctx!.fillStyle = s.c;
         ctx!.beginPath();
         ctx!.arc(px, py, s.r, 0, Math.PI * 2);
         ctx!.fill();
       }
-    }
 
-    function draw(t: number) {
-      ctx!.clearRect(0, 0, width, height);
-
-      const { x: hx, y: hy } = holePos(t);
-      const E = einstein();
-      const shadowR = E * 0.75;
-
-      for (const s of stars) {
-        const dx = s.x - hx;
-        const dy = s.y - hy;
-        const beta = Math.hypot(dx, dy);
-        if (beta < 0.001) continue;
-        const ux = dx / beta;
-        const uy = dy / beta;
-
-        const u = beta / E; // dimensionless source offset
-        const root = Math.sqrt(u * u + 4);
-        const A = (u * u + 2) / (2 * u * root);
-
-        // Primary image: outside the Einstein radius, same side as the star.
-        const rp = 0.5 * (u + root) * E;
-        drawImage(hx, hy, ux, uy, rp, s, A + 0.5);
-
-        // Secondary image: inside the ring, opposite side, hidden if it falls
-        // behind the shadow.
-        const rm = 0.5 * (root - u) * E;
-        if (rm >= shadowR) drawImage(hx, hy, -ux, -uy, rm, s, A - 0.5);
-      }
       ctx!.globalAlpha = 1;
-
-      // The hole's shadow: captured light, plain black with a soft edge.
-      const edge = ctx!.createRadialGradient(hx, hy, shadowR - 1.5, hx, hy, shadowR + 1);
-      edge.addColorStop(0, "#000000");
-      edge.addColorStop(1, "rgba(0,0,0,0)");
-      ctx!.fillStyle = edge;
-      ctx!.beginPath();
-      ctx!.arc(hx, hy, shadowR + 1, 0, Math.PI * 2);
-      ctx!.fill();
+      ctx!.globalCompositeOperation = "source-over";
     }
 
     resize();
 
     if (reduceMotion) {
-      draw(6);
+      draw(0);
       const onResizeStatic = () => {
         resize();
-        draw(6);
+        draw(0);
       };
       window.addEventListener("resize", onResizeStatic);
       return () => window.removeEventListener("resize", onResizeStatic);
