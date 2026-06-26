@@ -65,5 +65,25 @@ services:
       retries: 5
       start_period: 20s
 
+  # ── Cloudflare Tunnel ──────────────────────────────────────────────────────
+  # Publishes the app over HTTPS (e.g. status.deafiaa.com) WITHOUT opening any
+  # inbound port: cloudflared dials OUT to Cloudflare's edge. HTTPS gives the
+  # browser a "secure context", which the admin needs to work (crypto.randomUUID
+  # is undefined over plain http:// on a LAN IP).
+  #
+  # The tunnel is selected by TUNNEL_TOKEN (Zero Trust → Networks → Tunnels).
+  # Map the public hostname to the app there: <host> → http://app:3000
+  # NOTE: set TUNNEL_TOKEN in the deploy-dir .env BEFORE the next deploy, or
+  # `docker compose up` aborts (the running app is left untouched).
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?set TUNNEL_TOKEN in the stack env (Zero Trust → Tunnels)}
+    depends_on:
+      app:
+        condition: service_healthy
+
 volumes:
   pgdata:
