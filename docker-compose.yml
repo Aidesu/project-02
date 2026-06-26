@@ -8,8 +8,8 @@ name: deafiaa-serv
 # The app image self-migrates on boot (migrations + seed-if-empty, see
 # docker-entrypoint.sh), so there is no separate migrate step.
 #
-# For Portainer / a pre-built image from a registry, use
-# docker-compose.portainer.yml instead (no build, image: ghcr.io/...).
+# For a pre-built image pulled from a registry (production / VM deploy), use
+# docker-compose.prod.yml instead (no build, image: ghcr.io/...).
 
 services:
   db:

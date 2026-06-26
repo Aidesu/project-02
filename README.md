@@ -29,6 +29,7 @@ The server of the moment, the live status of running worlds, the games on offer 
 - [Environment Variables](#-environment-variables)
 - [Available Scripts](#-available-scripts)
 - [Deployment (Docker)](#-deployment-docker)
+- [Continuous Deployment (self-hosted)](#-continuous-deployment-self-hosted)
 - [Project Structure](#-project-structure)
 - [License](#-license)
 
@@ -161,7 +162,49 @@ cp .env.docker.example .env
 docker compose up --build        # → http://localhost:3000
 ```
 
-Downloadable files are mounted read-only into the container at `DOWNLOADS_DIR`. For a pre-built image from a registry (e.g. Portainer / GHCR), use **`docker-compose.portainer.yml`** instead — it pulls an image rather than building locally.
+Downloadable files are mounted read-only into the container at `DOWNLOADS_DIR`. For a pre-built image pulled from a registry (production / VM deploy, e.g. GHCR), use **`docker-compose.prod.yml`** instead — it pulls an image rather than building locally.
+
+---
+
+## 🔁 Continuous Deployment (self-hosted)
+
+Pushing to `main` runs the full pipeline end-to-end, with **no inbound port opened** on the LAN:
+
+```
+push main ─▶ CI (lint · typecheck · test · build)        [GitHub-hosted]
+          └▶ Publish image to GHCR                        [GitHub-hosted]
+             └▶ Deploy: pull + roll over the stack        [self-hosted runner on the VM]
+```
+
+The deploy job (`deploy` in `.github/workflows/docker-publish.yml`) runs **on the Proxmox VM** through a self-hosted runner that dials out to GitHub — so GitHub never needs to reach into your network. It syncs `docker-compose.prod.yml` into the deployment dir, then `docker compose pull && up -d`, and waits for the app's healthcheck.
+
+### One-time setup on the VM
+
+```bash
+# 1. Deployment dir holding the secrets (.env) + compose file. The runner only
+#    overwrites docker-compose.yml; it never touches .env.
+sudo install -d -o "$USER" /opt/deafiaa-serv
+cd /opt/deafiaa-serv
+curl -fsSL https://raw.githubusercontent.com/Aidesu/project-02/main/.env.docker.example -o .env
+$EDITOR .env                       # fill in POSTGRES_PASSWORD, DATABASE_URL, AUTH_SECRET, ADMIN_PASSWORD…
+
+# 2. Let the runner's user drive Docker
+sudo usermod -aG docker "$USER"    # then log out/in (or: newgrp docker)
+
+# 3. Install the self-hosted runner (GitHub → repo → Settings → Actions →
+#    Runners → "New self-hosted runner" gives you the exact token & URL).
+#    Add the custom label the workflow targets: deafiaa-serv
+mkdir -p ~/actions-runner && cd ~/actions-runner
+curl -o runner.tar.gz -L https://github.com/actions/runner/releases/latest/download/actions-runner-linux-x64.tar.gz
+tar xzf runner.tar.gz
+./config.sh --url https://github.com/Aidesu/project-02 \
+            --token <RUNNER_TOKEN> --labels deafiaa-serv --unattended
+sudo ./svc.sh install && sudo ./svc.sh start    # run as a background service
+```
+
+That's it — the next push to `main` builds, publishes, and rolls the stack over automatically. Trigger a deploy by hand anytime from the **Actions** tab (`Publish Docker image` → _Run workflow_).
+
+> 💡 The deployment dir defaults to `/opt/deafiaa-serv`. To use another path, set a repository **variable** `DEPLOY_DIR` (Settings → Secrets and variables → Actions → Variables) — no workflow edit needed.
 
 ---
 

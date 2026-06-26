@@ -1,11 +1,12 @@
 name: deafiaa-serv
 
 # ─────────────────────────────────────────────────────────────────────────────
-#  Portainer / registry deployment — NO build (a light CT only pulls + runs).
-#  The image is built and pushed to GHCR by .github/workflows/docker-publish.yml.
+#  Production deployment — NO build: pulls the pre-built image and runs it.
+#  The image is built and pushed to GHCR by .github/workflows/docker-publish.yml,
+#  then rolled out on the VM by that workflow's `deploy` job (self-hosted runner).
 #
-#  Portainer → Stacks → Add stack → Web editor: paste this file.
-#  Set the variables below in the stack's "Environment variables" section:
+#  Provide the secrets via a `.env` file next to this compose file (the deploy
+#  job expects it at DEPLOY_DIR/.env — see README "Continuous Deployment"):
 #    POSTGRES_PASSWORD, DATABASE_URL, AUTH_SECRET, ADMIN_PASSWORD  (required)
 #    APP_IMAGE, APP_PORT, PROXMOX_*, DOWNLOADS_*                   (optional)
 #

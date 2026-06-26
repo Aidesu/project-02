@@ -1,7 +1,7 @@
 name: Publish Docker image
 
 # Builds the production image and pushes it to GitHub Container Registry (GHCR),
-# so a light host (e.g. a Portainer CT) only ever pulls + runs — never builds.
+# so a light host (e.g. the Proxmox VM) only ever pulls + runs — never builds.
 on:
   push:
     branches: [main]
@@ -51,3 +51,68 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # ───────────────────────────────────────────────────────────────────────────
+  #  CD — runs ON the Proxmox VM via a self-hosted runner (label: deafiaa-serv).
+  #  The runner dials out to GitHub, so no inbound port is opened on the LAN.
+  #  It pulls the freshly published image and rolls the stack over in place.
+  #
+  #  The VM keeps a deployment dir (DEPLOY_DIR, default /opt/deafiaa-serv) that
+  #  holds the secrets file `.env` — never committed. The job only syncs the
+  #  compose file there, then runs `docker compose pull && up -d`.
+  #  See the README "Continuous deployment" section for one-time runner setup.
+  # ───────────────────────────────────────────────────────────────────────────
+  deploy:
+    needs: publish
+    if: github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, deafiaa-serv]
+    permissions:
+      contents: read
+      packages: read
+    concurrency:
+      group: deploy-deafiaa-serv
+      cancel-in-progress: false
+    env:
+      DEPLOY_DIR: ${{ vars.DEPLOY_DIR || '/opt/deafiaa-serv' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync compose file into the deploy dir
+        run: |
+          install -d "$DEPLOY_DIR"
+          cp docker-compose.prod.yml "$DEPLOY_DIR/docker-compose.yml"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull + roll out
+        working-directory: ${{ env.DEPLOY_DIR }}
+        run: |
+          if [ ! -f .env ]; then
+            echo "::error::$DEPLOY_DIR/.env is missing — create it from .env.docker.example (see README)."
+            exit 1
+          fi
+          docker compose pull
+          docker compose up -d --remove-orphans
+
+      - name: Wait for the app to become healthy
+        working-directory: ${{ env.DEPLOY_DIR }}
+        run: |
+          cid=$(docker compose ps -q app)
+          for i in $(seq 1 30); do
+            status=$(docker inspect -f '{{.State.Health.Status}}' "$cid" 2>/dev/null || echo unknown)
+            echo "app health: $status"
+            [ "$status" = "healthy" ] && exit 0
+            sleep 5
+          done
+          echo "::error::app did not become healthy within ~150s — rolling back is up to you."
+          docker compose logs --tail=80 app
+          exit 1
+
+      - name: Prune dangling images
+        if: always()
+        run: docker image prune -f
