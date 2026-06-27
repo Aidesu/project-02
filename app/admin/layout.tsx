@@ -1,15 +1,13 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { requireAuth } from "@/lib/auth";
 import { logoutAction } from "./actions";
 
-export default async function AdminLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Redirects to /login when there is no valid session.
-  await requireAuth();
-
   return (
     <div className="shell space-y-6 py-8">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
@@ -43,7 +41,18 @@ export default async function AdminLayout({
         </div>
       </div>
 
-      {children}
+      {/* Gate the content behind the session check (cookies → request-time) so
+          admin data never renders/streams before auth passes. Suspense keeps the
+          static chrome above from being blocked. */}
+      <Suspense fallback={<p className="text-sm text-muted">Chargement…</p>}>
+        <AuthGate>{children}</AuthGate>
+      </Suspense>
     </div>
   );
+}
+
+/** Redirects to /login when there is no valid session, then renders the page. */
+async function AuthGate({ children }: { children: React.ReactNode }) {
+  await requireAuth();
+  return <>{children}</>;
 }

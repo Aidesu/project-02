@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { isAuthenticated } from "@/lib/auth";
 import { LoginForm } from "@/app/_components/LoginForm";
 
 export const metadata: Metadata = { title: "Connexion" };
-export const dynamic = "force-dynamic";
 
-export default async function LoginPage() {
-  if (await isAuthenticated()) redirect("/admin");
-
+export default function LoginPage() {
   return (
     <div className="shell">
+      {/* The session check reads cookies (request-time); keep it out of the
+          static shell so the login card renders instantly. */}
+      <Suspense fallback={null}>
+        <RedirectIfAuthenticated />
+      </Suspense>
       <div className="mx-auto max-w-sm py-16">
         <div className="rounded-xl border border-line bg-panel p-6">
           <div className="mb-5 flex items-center gap-2.5">
@@ -29,4 +32,10 @@ export default async function LoginPage() {
       </div>
     </div>
   );
+}
+
+/** Already-signed-in visitors are bounced to the admin dashboard. */
+async function RedirectIfAuthenticated() {
+  if (await isAuthenticated()) redirect("/admin");
+  return null;
 }

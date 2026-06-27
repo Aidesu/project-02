@@ -3,8 +3,7 @@ import { getRecentSnapshots, getUptime } from '@/lib/db/snapshots'
 import { enforceRateLimit } from '@/lib/rate-limit'
 
 // Uptime + recent player-count history for one server, from status_snapshots.
-export const dynamic = 'force-dynamic'
-
+// Reads params/headers → always request-time (no prerender).
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
 export async function GET(req: Request, ctx: RouteContext<'/api/history/[slug]'>) {

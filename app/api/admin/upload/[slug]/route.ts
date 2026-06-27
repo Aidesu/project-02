@@ -17,10 +17,8 @@ import {
 // Admin file upload. Streams the raw request body straight to disk (the file is
 // sent as the whole body, name in `?name=`), so large worlds/modpacks never get
 // buffered in memory. Writes only under UPLOADS_DIR/<slug>/ — never the
-// read-only DOWNLOADS_DIR tree. Node runtime (uses fs).
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
-
+// read-only DOWNLOADS_DIR tree. Node runtime (uses fs). Reads body/headers →
+// always request-time (no prerender).
 const SLUG_RE = /^[a-z0-9-]+$/
 
 function err(status: number, error: string): Response {

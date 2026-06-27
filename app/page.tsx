@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import {
   getActiveServers,
@@ -8,14 +9,22 @@ import {
 import { getGame } from "@/lib/games";
 import { ServerCard } from "./_components/ServerCard";
 import { ServerHero } from "./_components/ServerHero";
+import { LiveBootstrap } from "./_components/LiveBootstrap";
 
-// Le catalogue vient de la BDD, injectée seulement au runtime (jamais au
-// `next build` — voir .dockerignore qui exclut .env*). Sans ceci, la page est
-// prérendue au build avec le repli statique data/servers.ts et sert ces données
-// d'exemple jusqu'à une revalidation. On force donc le rendu à la requête.
-export const dynamic = "force-dynamic";
+export default function Home() {
+  // The chrome streams together with seeded live data behind one boundary, so
+  // the featured server and cards paint with real status — no vide→rempli flip.
+  // The fallback reserves the layout to avoid a shift when content streams in.
+  return (
+    <Suspense fallback={<HomeSkeleton />}>
+      <LiveBootstrap>
+        <HomeContent />
+      </LiveBootstrap>
+    </Suspense>
+  );
+}
 
-export default async function Home() {
+async function HomeContent() {
   const active = await getActiveServers();
   const current = await getCurrentServer();
   const others = active.filter((s) => s.slug !== current?.slug);
@@ -131,6 +140,27 @@ function EmptyState() {
         </code>
         .
       </p>
+    </div>
+  );
+}
+
+/** Layout-reserving placeholder shown while the home content streams in. */
+function HomeSkeleton() {
+  return (
+    <div aria-hidden className="animate-pulse">
+      {/* Featured banner block */}
+      <div className="min-h-[34rem] w-full border-b border-line bg-panel/40 sm:min-h-[clamp(36rem,70vh,54rem)]" />
+      <div className="shell space-y-16 py-12 sm:py-16">
+        <div className="h-5 w-40 rounded bg-panel-2/70" />
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-72 rounded-xl border border-line bg-panel/50"
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

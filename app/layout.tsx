@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Space_Grotesk, Karla, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "./_components/SiteHeader";
@@ -51,9 +52,26 @@ export default function RootLayout({
         <AmbientBackground />
         <SiteHeader />
         <StatusLine />
-        <main className="flex-1 w-full pb-20">{children}</main>
+        {/* Chrome (header / status line / footer) is the static shell; page
+            content is request-time (catalog + live), so it streams into this
+            boundary. Pages add finer boundaries of their own for live data. */}
+        <main className="flex-1 w-full pb-20">
+          <Suspense fallback={<PageFallback />}>{children}</Suspense>
+        </main>
         <SiteFooter />
       </body>
     </html>
+  );
+}
+
+/** Quiet placeholder shown while a page's request-time content streams in. */
+function PageFallback() {
+  return (
+    <div
+      className="shell flex min-h-[40vh] items-center gap-2.5 py-16 font-mono text-xs text-muted"
+      aria-hidden
+    >
+      <span className="caret-blink text-signal">▌</span> chargement…
+    </div>
   );
 }

@@ -1,22 +1,24 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getServer, serverAddress } from "@/lib/servers";
+import { getServer, getAllServerSlugs, serverAddress } from "@/lib/servers";
 import { getGame } from "@/lib/games";
 import { formatBytes, formatDate } from "@/lib/format";
 import { downloadFilePath, fileSize } from "@/lib/downloads";
 import type { Server } from "@/lib/types";
 import { GameBanner } from "../../_components/GameBanner";
 import { LiveStatusPanel } from "../../_components/LiveStatusPanel";
+import { LiveBootstrap } from "../../_components/LiveBootstrap";
 import { ServerHistory } from "../../_components/ServerHistory";
 import { CopyButton } from "../../_components/CopyButton";
 
-// Lecture BDD à la requête : la BDD n'existe qu'au runtime, pas au build.
-// Sans ceci, la page serait prérendue au build avec le repli statique
-// data/servers.ts et servirait ces données d'exemple. force-dynamic supprime le
-// prérendu ; generateStaticParams (qui lisait ce repli) n'a donc plus lieu d'être.
-export const dynamic = "force-dynamic";
+// Dynamic segment: provide build-time param samples so Next can construct the
+// route. Slugs added later are still served at request time (PPR).
+export async function generateStaticParams() {
+  return (await getAllServerSlugs()).map((slug) => ({ slug }));
+}
 
 export async function generateMetadata(
   props: PageProps<"/serveurs/[slug]">,
@@ -186,7 +188,13 @@ export default async function ServerDetailPage(props: PageProps<"/serveurs/[slug
             </section>
           ) : (
             <>
-              <LiveStatusPanel slug={server.slug} />
+              {/* Live status streams in already-resolved (seeded), so it never
+                  flips from "Vérif…" to real values after hydration. */}
+              <Suspense fallback={<LivePanelSkeleton />}>
+                <LiveBootstrap>
+                  <LiveStatusPanel slug={server.slug} />
+                </LiveBootstrap>
+              </Suspense>
               <ServerHistory slug={server.slug} />
             </>
           )}
@@ -266,5 +274,15 @@ function DownloadsSection({ server }: { server: Server }) {
         })}
       </ul>
     </section>
+  );
+}
+
+/** Reserves the live panel's height while it streams in. */
+function LivePanelSkeleton() {
+  return (
+    <section
+      aria-hidden
+      className="h-72 animate-pulse rounded-2xl border border-line bg-surface"
+    />
   );
 }

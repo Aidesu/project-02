@@ -8,8 +8,7 @@ import { enforceRateLimit } from '@/lib/rate-limit'
 
 // Streams a declared download file from disk, with HTTP Range support so
 // large worlds can be resumed / partially fetched. Node runtime (uses fs).
-export const dynamic = 'force-dynamic'
-
+// Reads params/headers → always request-time (no prerender).
 const CONTENT_TYPES: Record<string, string> = {
   '.zip': 'application/zip',
   '.gz': 'application/gzip',

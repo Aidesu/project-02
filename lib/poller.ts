@@ -2,7 +2,7 @@ import 'server-only'
 import { hasDatabase } from './db/client'
 import { insertSnapshot, pruneSnapshots } from './db/snapshots'
 import { getLiveStatus } from './live'
-import { getActiveServers } from './servers'
+import { getActiveServersUncached } from './servers'
 
 // ─────────────────────────────────────────────────────────────────────────
 //  Background poller: every minute it records a live-status snapshot for each
@@ -26,7 +26,7 @@ let pollCount = 0
 
 async function recordOnce(): Promise<void> {
   try {
-    const servers = await getActiveServers()
+    const servers = await getActiveServersUncached()
     await Promise.all(
       servers.map(async (server) => {
         const status = await getLiveStatus(server)

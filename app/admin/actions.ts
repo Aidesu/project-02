@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
+import { updateTag } from 'next/cache'
 import { destroySession, isAuthenticated } from '@/lib/auth'
 import {
   createServer,
@@ -19,12 +19,15 @@ async function guard(): Promise<void> {
   if (!(await isAuthenticated())) redirect('/login')
 }
 
-/** Revalidate every page that renders the catalog after a mutation. */
+/**
+ * Invalidate the catalog cache after a mutation. The catalog is read through
+ * `loadAll()` in lib/servers.ts, tagged `servers` — one `updateTag` refreshes
+ * every page that renders it (home, history, detail, admin). `updateTag`
+ * (read-your-own-writes) makes the next read wait for fresh data, so the admin
+ * sees the change immediately after the redirect.
+ */
 function revalidateCatalog(): void {
-  revalidatePath('/')
-  revalidatePath('/historique')
-  revalidatePath('/serveurs/[slug]', 'page')
-  revalidatePath('/admin')
+  updateTag('servers')
 }
 
 function field(form: FormData, key: string): string {
