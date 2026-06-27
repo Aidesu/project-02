@@ -6,7 +6,6 @@ import { hasDatabase } from "@/lib/db/client";
 import { DeleteServerButton } from "@/app/_components/DeleteServerButton";
 
 export const metadata: Metadata = { title: "Admin" };
-export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const servers = await getAllServers();

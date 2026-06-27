@@ -1,6 +1,12 @@
+import { cacheLife } from "next/cache";
 import Link from "next/link";
 
-export function SiteFooter() {
+// Cached so `new Date()` (non-deterministic) runs at cache-fill time and the
+// footer stays part of the static shell rather than forcing request-time render.
+// The copyright year only changes once a year — `days` is plenty.
+export async function SiteFooter() {
+  "use cache";
+  cacheLife("days");
   const year = new Date().getFullYear();
   return (
     <footer className="border-t border-line">

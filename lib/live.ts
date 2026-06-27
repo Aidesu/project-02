@@ -1,5 +1,5 @@
 import 'server-only'
-import { getActiveServers } from './servers'
+import { getActiveServersUncached } from './servers'
 import { queryServer } from './gamedig'
 import { queryProxmox } from './proxmox'
 import type { LiveStatus, ProxmoxStats, Server } from './types'
@@ -20,8 +20,13 @@ import type { LiveStatus, ProxmoxStats, Server } from './types'
 //  self-hosted instance; move to Redis if you scale horizontally.
 // ─────────────────────────────────────────────────────────────────────────
 
-const STATUS_TTL_MS = 12_000
-const PROXMOX_TTL_MS = 12_000
+// Cadence: the client polls /api/live every 15 s (useLive REFRESH_MS) and each
+// page render seeds from getActiveLive(). These TTLs are tuned to that window —
+// one upstream query per ~15 s is shared by all concurrent visitors and SSR
+// renders, so upstream load stays O(servers), not O(visitors). (The 60 s history
+// poller in lib/poller.ts is independent; it records snapshots, not this cache.)
+const STATUS_TTL_MS = 15_000
+const PROXMOX_TTL_MS = 15_000
 
 interface CacheEntry {
   value: unknown
@@ -72,7 +77,7 @@ export interface LiveSnapshot {
 
 /** Aggregated live data for all active servers, in one shot. Powers /api/live. */
 export async function getActiveLive(): Promise<LiveSnapshot> {
-  const servers = await getActiveServers()
+  const servers = await getActiveServersUncached()
   const entries = await Promise.all(
     servers.map(async (server) => {
       const [status, proxmox] = await Promise.all([

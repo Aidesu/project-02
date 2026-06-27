@@ -20,6 +20,12 @@ const nextConfig: NextConfig = {
   // server.js) so the Docker runtime image stays small and needs no install.
   output: "standalone",
 
+  // Cache Components (Next 16): pages are dynamic by default and we opt specific
+  // reads into the static shell with `use cache`. This powers Partial
+  // Prerendering — the catalog chrome is prerendered and served instantly while
+  // live status streams into Suspense holes, killing the post-hydration flash.
+  cacheComponents: true,
+
   images: {
     // Add a 5120 candidate above the default 3840 ceiling so the full-bleed
     // hero stays crisp on 21:9+ / ultrawide displays instead of upscaling a

@@ -1,17 +1,35 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { getServer } from "@/lib/servers";
+import { getServer, getAllServerSlugs } from "@/lib/servers";
 import { GAMES } from "@/lib/games";
 import { ServerForm, type ServerFormValues } from "@/app/_components/ServerForm";
 import { updateServerAction } from "../../actions";
 
 export const metadata: Metadata = { title: "Éditer un serveur" };
-export const dynamic = "force-dynamic";
 
-export default async function EditServerPage(
-  props: PageProps<"/admin/[slug]/edit">,
-) {
-  const { slug } = await props.params;
+// A non-leaf dynamic segment (`[slug]/edit`) needs its params known at build so
+// Next can construct the route tree. Read from the uncached source (build-safe).
+// Slugs added later are still handled at request time (PPR).
+export async function generateStaticParams() {
+  return (await getAllServerSlugs()).map((slug) => ({ slug }));
+}
+
+export default function EditServerPage(props: PageProps<"/admin/[slug]/edit">) {
+  // `params` and the catalog read are request-time; stream them behind Suspense.
+  return (
+    <Suspense fallback={<p className="text-sm text-muted">Chargement…</p>}>
+      <EditServerForm params={props.params} />
+    </Suspense>
+  );
+}
+
+async function EditServerForm({
+  params,
+}: {
+  params: PageProps<"/admin/[slug]/edit">["params"];
+}) {
+  const { slug } = await params;
   const server = await getServer(slug);
   if (!server) notFound();
 

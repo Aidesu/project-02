@@ -4,7 +4,6 @@ import { ServerForm } from "@/app/_components/ServerForm";
 import { createServerAction } from "../actions";
 
 export const metadata: Metadata = { title: "Nouveau serveur" };
-export const dynamic = "force-dynamic";
 
 export default function NewServerPage() {
   const games = Object.values(GAMES).map((g) => ({
